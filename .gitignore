@@ -1,0 +1,11 @@
+**/build/
+**/local_settings.py
+**/venv*/
+**/.idea/
+**/.vscode
+**/*.iml
+**/*.egg-info
+**/dist
+**/logs
+**/*.session
+**/__pycache__
