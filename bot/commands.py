@@ -4,20 +4,27 @@ from aiogram.dispatcher.filters import Command, CommandStart, Text
 from aiogram.utils.markdown import hbold, hcode, hide_link, hlink, hitalic
 from aiogram.dispatcher.storage import FSMContext
 
-from bot.keyboards import start_menu
-
-
-
+from bot.dictionary import start_menu, dictionary_button, ListDictionaries
 
 async def start(message: types.Message, state:FSMContext):
     """ Запуск бота """
     await message.answer(f"Привет {message.from_user.first_name}", reply_markup=start_menu)
 
 
-### Стартовое меню
-async def menu_dict(message: types.Message, state: FSMContext):
+async def menu_dictionary(
+    message: types.Message, list_dictionaries: ListDictionaries):
     """ Словари """
-    # TODO реализовать подгрузку словарей держать их в генераторах чтобы не потребляли память
+    await message.answer(
+        f"{message.from_user.first_name} Выбери словарь: ",
+        reply_markup=list_dictionaries.dictionari_menu())
+
+
+async def show_dictionary(
+    call: types.CallbackQuery, list_dictionaries: ListDictionaries):
+    _, category = call.data.split(":")
+    text = list_dictionaries.get_by_name(category).get()
+    await call.message.edit_text(
+        f"Словарь категории {category}\n {text}")
 
 ### Свалка 
 async def shit(message: types.Message):
@@ -26,4 +33,12 @@ async def shit(message: types.Message):
 
 def register_commands(dp: Dispatcher):
     """ Регистратор команд """
-    dp.register_message_handler(start, CommandStart(deep_link=re.compile('\d+')) | Command("start"), state='*')   # Стартовое меню
+    # Стартовое меню
+    dp.register_message_handler(start, CommandStart(deep_link=re.compile('\d+')) | Command("start"), state='*')   
+    
+    # Меню словарей
+    dp.register_message_handler(menu_dictionary, Text(equals="📊 Словари") | Command('dict'))
+    # Словарь
+    dp.register_callback_query_handler(show_dictionary, dictionary_button.filter())
+    # Мусор 
+    dp.register_message_handler(shit, content_types=types.ContentType.ANY, state='*')   
